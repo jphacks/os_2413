@@ -1,0 +1,123 @@
+[
+  {
+    "sha": "691ceaf7566a08c26a3007e10a8a194ad773c46f",
+    "commit": {
+      "message": "Merge pull request #1 from fukai0116/feature-2\n\n日報表示画面の作成",
+      "author": {
+        "name": "deforu",
+        "email": "133000379+deforu@users.noreply.github.com",
+        "date": "2024-10-26T14:48:08Z"
+      }
+    }
+  },
+  {
+    "sha": "b57ff5f299ecb3e9f57d8a02454a3c891489cf7e",
+    "commit": {
+      "message": "日報表示画面の作成",
+      "author": {
+        "name": "deforu",
+        "email": "22j1162@andrew.ac.jp",
+        "date": "2024-10-26T14:28:43Z"
+      }
+    }
+  },
+  {
+    "sha": "fb7a75eec25e20755c7bbba19c9f66eaedec37f0",
+    "commit": {
+      "message": "Merge branch 'main' of github.com:fukai0116/github-repo",
+      "author": {
+        "name": "Toshi",
+        "email": "21s1328@andrew.ac.jp",
+        "date": "2024-10-26T07:56:16Z"
+      }
+    }
+  },
+  {
+    "sha": "65cfedd98fe20ff537d2900e86324b1fad8374f7",
+    "commit": {
+      "message": "githubAPIとの連携を実装　コミット内容などがjsonに保存される",
+      "author": {
+        "name": "Toshi",
+        "email": "21s1328@andrew.ac.jp",
+        "date": "2024-10-26T07:55:25Z"
+      }
+    }
+  },
+  {
+    "sha": "1043f70eb22faad56de0de23ce2a02f2a56c7672",
+    "commit": {
+      "message": "フロント：項目ごとにページ追加",
+      "author": {
+        "name": "deforu",
+        "email": "22j1162@andrew.ac.jp",
+        "date": "2024-10-26T05:28:29Z"
+      }
+    }
+  },
+  {
+    "sha": "3ed52d2980f6f8f9b6eacf9a12d11cf40677a059",
+    "commit": {
+      "message": "Gemini APIとの接続",
+      "author": {
+        "name": "deforu",
+        "email": "22j1162@andrew.ac.jp",
+        "date": "2024-10-26T05:11:31Z"
+      }
+    }
+  },
+  {
+    "sha": "19f497e381abf81ee8ab8ddd8531320cacfbfe9c",
+    "commit": {
+      "message": "ホーム画面を一部追加",
+      "author": {
+        "name": "Toshi",
+        "email": "21s1328@andrew.ac.jp",
+        "date": "2024-10-26T04:16:10Z"
+      }
+    }
+  },
+  {
+    "sha": "3a9e0c93d9254ad660f45ca567c16df3e247a9f2",
+    "commit": {
+      "message": "dockerfile修正",
+      "author": {
+        "name": "Toshi",
+        "email": "21s1328@andrew.ac.jp",
+        "date": "2024-10-26T01:49:58Z"
+      }
+    }
+  },
+  {
+    "sha": "f02e742733734ed035da3ebff30c81f242dcb151",
+    "commit": {
+      "message": "セットアップ完了",
+      "author": {
+        "name": "fukai0116",
+        "email": "134059797+fukai0116@users.noreply.github.com",
+        "date": "2024-10-25T15:20:15Z"
+      }
+    }
+  },
+  {
+    "sha": "31e7216def338a910ffbb8bad7dfa78c07735f81",
+    "commit": {
+      "message": "セットアップ続き",
+      "author": {
+        "name": "Toshi",
+        "email": "21s1328@andrew.ac.jp",
+        "date": "2024-10-25T11:10:07Z"
+      }
+    }
+  },
+  {
+    "sha": "d001de109b3f42c867e2070b0ec25fac185ad987",
+    "commit": {
+      "message": "first commit",
+      "author": {
+        "name": "Toshi",
+        "email": "21s1328@andrew.ac.jp",
+        "date": "2024-10-25T10:40:02Z"
+      }
+    }
+  }
+]
