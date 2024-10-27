@@ -1,7 +1,17 @@
+// app/components/DailyReportEditor.tsx
 import React from "react";
 import { format } from "date-fns";
 import { ja } from "date-fns/locale";
-import { Copy, Download, Share2, Pencil, Save, FileEdit } from "lucide-react";
+import {
+  Copy,
+  Download,
+  Share2,
+  Pencil,
+  Save,
+  FileEdit,
+  Trash2,
+} from "lucide-react";
+import { useState } from "react";
 
 interface DailyReportEditorProps {
   currentDate: Date;
@@ -12,6 +22,7 @@ interface DailyReportEditorProps {
   reportTitle: string;
   onEdit: () => void;
   onSave: () => void;
+  onDelete: () => void;
   onContentChange: (content: string) => void;
   onGenerateReport: () => void;
 }
@@ -25,17 +36,43 @@ const DailyReportEditor: React.FC<DailyReportEditorProps> = ({
   reportTitle,
   onEdit,
   onSave,
+  onDelete,
   onContentChange,
   onGenerateReport,
 }) => {
+  const [tempReportContent, setTempReportContent] = useState(reportContent);
+
+  const handleGenerateReport = async () => {
+    // 日報の内容を設定する処理を追加
+    setTempReportContent(analysis);
+    onGenerateReport();
+  };
+  const copyToClipboard = () => {
+    navigator.clipboard.writeText(reportContent);
+    // コピー完了のフィードバックを表示するなどの処理を追加できます
+  };
+
   return (
     <div className="w-100 bg-white rounded-lg border">
       <div className="flex items-center justify-between p-4 border-b">
         <div className="flex-1 flex items-center justify-between">
           <div className="flex items-center space-x-6">
             <div className="font-medium">
-              {reportTitle || "無題の日報"}
-              <div className="text-gray-600">
+              {isEditing ? (
+                <input
+                  type="text"
+                  className={`px-2 py-1 rounded-md focus:outline-none focus:ring-2 ${
+                    isEditing
+                      ? "focus:ring-gray-500 border border-gray-200"
+                      : "focus:ring-blue-500"
+                  }`}
+                  value={tempReportTitle}
+                  onChange={(e) => setTempReportTitle(e.target.value)}
+                />
+              ) : (
+                reportTitle || "無題の日報"
+              )}
+              <div className="text-gray-400">
                 {format(currentDate, "yyyy年MM月dd日 (E)", { locale: ja })}
               </div>
             </div>
@@ -43,13 +80,24 @@ const DailyReportEditor: React.FC<DailyReportEditorProps> = ({
 
           <div className="flex space-x-4">
             <button className="p-2 hover:bg-gray-100 rounded-full transition-colors">
-              <Copy size={20} />
+              <div
+                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                onClick={copyToClipboard}
+              >
+                <Copy size={20} />
+              </div>
             </button>
             <button className="p-2 hover:bg-gray-100 rounded-full transition-colors">
               <Download size={20} />
             </button>
             <button className="p-2 hover:bg-gray-100 rounded-full transition-colors">
               <Share2 size={20} />
+            </button>
+            <button
+              onClick={onDelete}
+              className="p-2 hover:bg-gray-100 rounded-full transition-colors text-red-500"
+            >
+              <Trash2 size={20} />
             </button>
             <button
               onClick={() => (isEditing ? onSave() : onEdit())}
@@ -97,8 +145,8 @@ const DailyReportEditor: React.FC<DailyReportEditorProps> = ({
         ) : isEditing ? (
           <textarea
             className="w-full h-full p-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            value={reportContent}
-            onChange={(e) => onContentChange(e.target.value)}
+            value={tempReportContent}
+            onChange={(e) => setTempReportContent(e.target.value)}
             placeholder="日報を入力してください..."
           />
         ) : reportContent ? (
@@ -108,7 +156,7 @@ const DailyReportEditor: React.FC<DailyReportEditorProps> = ({
         ) : (
           <div className="flex flex-col items-center justify-center h-full text-gray-500">
             <p className="mb-4">
-              日報を作成するには、上部の「日報を作成」ボタンをクリックしてください
+              日報を作成するには、下部の「日報を作成」ボタンをクリックしてください
             </p>
             <button
               onClick={onGenerateReport}

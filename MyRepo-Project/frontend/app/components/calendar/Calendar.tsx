@@ -8,10 +8,10 @@ import CalendarGrid from "./CalendarGrid";
 
 // 仮のデータ（実際にはpropsで渡すか、APIから取得）
 export const mockReports = [
-  "2024-01-01",
-  "2024-01-02",
-  "2024-01-04",
-  "2024-01-05",
+  "2024-10-22",
+  "2024-10-23",
+  "2024-10-24",
+  "2024-10-25",
 ];
 
 export const holidays = {
@@ -27,7 +27,7 @@ export default function Calendar() {
   );
 
   return (
-    <div className="flex flex-col items-center p-8 bg-gray-50 min-h-screen">
+    <div className="flex flex-col items-center p-8 bg-gray-50">
       <CalendarHeader
         currentDate={currentDate}
         setCurrentDate={setCurrentDate}

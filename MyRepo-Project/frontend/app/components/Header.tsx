@@ -36,7 +36,7 @@ export default function Header() {
             {/* ユーザーアイコン */}
             <button className="hover:bg-gray-100 p-1 rounded-full">
               <img
-                src="/api/placeholder/32/32"
+                src="./images/photo-icon.png"
                 alt="User profile"
                 className="w-8 h-8 rounded-full"
               />

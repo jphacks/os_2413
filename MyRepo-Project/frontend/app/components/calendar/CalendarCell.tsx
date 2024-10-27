@@ -1,7 +1,8 @@
-// app/components/calendar/CalendarCell.tsx
 import { format, isSameDay, isSameMonth } from "date-fns";
 import { CheckCircle } from "lucide-react";
 import { mockReports, holidays } from "./Calendar";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 interface CalendarCellProps {
   date: Date;
@@ -16,14 +17,24 @@ export default function CalendarCell({
   currentDate,
   onClick,
 }: CalendarCellProps) {
+  const router = useRouter();
   const formattedDate = format(date, "yyyy-MM-dd");
   const isToday = isSameDay(date, new Date());
   const hasReport = mockReports.includes(formattedDate);
-  const holiday = holidays[formattedDate];
   const isCurrentMonth = isSameMonth(date, currentDate);
 
+  const handleClick = () => {
+    if (hasReport) {
+      // URLパラメータとして日付を渡す
+      router.push(`/daily-report?date=${formattedDate}`);
+    }
+  };
+
   return (
-    <td className="p-4 border relative min-h-[120px] align-top hover:bg-gray-50 transition-colors">
+    <td
+      className="p-4 border relative min-h-[120px] align-top hover:bg-gray-50 transition-colors cursor-pointer"
+      onClick={handleClick}
+    >
       <div
         className={`
         ${!isCurrentMonth ? "text-gray-400" : ""}
@@ -35,13 +46,8 @@ export default function CalendarCell({
         {format(date, "d")}
       </div>
 
-      {holiday && <div className="text-red-500 text-sm mt-1">{holiday}</div>}
-
       {hasReport && (
-        <div
-          onClick={onClick}
-          className="mt-2 flex items-center gap-1 cursor-pointer group"
-        >
+        <div className="mt-2 flex items-center gap-1 group">
           <CheckCircle
             className="text-green-500 transition-transform group-hover:scale-110"
             size={16}

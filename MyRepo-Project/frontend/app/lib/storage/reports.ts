@@ -1,4 +1,5 @@
 // lib/storage/reports.ts
+
 export interface DailyReportData {
   date: string;
   title: string;
@@ -7,11 +8,37 @@ export interface DailyReportData {
   updatedAt: string;
 }
 
-const STORAGE_KEY = 'daily-reports';
+export interface CommitData {
+  sha: string;
+  commit: {
+    message: string;
+    author: {
+      name: string;
+      email: string;
+      date: string;
+    };
+  };
+}
 
-export const reportStorage = {
-  // 日報を保存
+const REPORTS_STORAGE_KEY = 'daily-reports';
+const COMMITS_STORAGE_KEY = 'commit-history';
+
+class ReportStorage {
+  hasReport(date: string): boolean {
+    if (typeof window === 'undefined') return false;
+    const reports = this.getAllReports();
+    return !!reports[date];
+  }
+
+   deleteReport(date: string): void {
+    if (typeof window === 'undefined') return;
+    const reports = this.getAllReports();
+    delete reports[date];
+    localStorage.setItem(REPORTS_STORAGE_KEY, JSON.stringify(reports));
+  }
+
   saveReport(date: string, title: string, content: string): void {
+    if (typeof window === 'undefined') return;
     const reports = this.getAllReports();
     reports[date] = {
       date,
@@ -20,24 +47,57 @@ export const reportStorage = {
       createdAt: reports[date]?.createdAt || new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(reports));
-  },
+    localStorage.setItem(REPORTS_STORAGE_KEY, JSON.stringify(reports));
+  }
 
-  // 特定の日付の日報を取得
   getReport(date: string): DailyReportData | null {
+    if (typeof window === 'undefined') return null;
     const reports = this.getAllReports();
     return reports[date] || null;
-  },
-
-  // 全ての日報を取得
-  getAllReports(): { [date: string]: DailyReportData } {
-    const reportsJson = localStorage.getItem(STORAGE_KEY);
-    return reportsJson ? JSON.parse(reportsJson) : {};
-  },
-
-  // 日報が存在するかチェック
-  hasReport(date: string): boolean {
-    const reports = this.getAllReports();
-    return !!reports[date];
   }
-};
+
+  getAllReports(): { [date: string]: DailyReportData } {
+    if (typeof window === 'undefined') return {};
+    const reportsJson = localStorage.getItem(REPORTS_STORAGE_KEY);
+    return reportsJson ? JSON.parse(reportsJson) : {};
+  }
+}
+
+class CommitStorage {
+  saveCommits(commits: CommitData[]): void {
+    if (typeof window === 'undefined') return;
+    
+    const commitsByDate = commits.reduce((acc: { [date: string]: CommitData[] }, commit) => {
+      const date = new Date(commit.commit.author.date).toISOString().split('T')[0];
+      if (!acc[date]) {
+        acc[date] = [];
+      }
+      acc[date].push(commit);
+      return acc;
+    }, {});
+
+    localStorage.setItem(COMMITS_STORAGE_KEY, JSON.stringify(commitsByDate));
+  }
+
+  getCommitsByDate(date: string): CommitData[] {
+    if (typeof window === 'undefined') return [];
+    const commits = this.getAllCommits();
+    return commits[date] || [];
+  }
+
+  getAllCommits(): { [date: string]: CommitData[] } {
+    if (typeof window === 'undefined') return {};
+    const commitsJson = localStorage.getItem(COMMITS_STORAGE_KEY);
+    return commitsJson ? JSON.parse(commitsJson) : {};
+  }
+
+  hasCommits(date: string): boolean {
+    if (typeof window === 'undefined') return false;
+    const commits = this.getAllCommits();
+    return !!commits[date] && commits[date].length > 0;
+  }
+}
+
+
+export const reportStorage = new ReportStorage();
+export const commitStorage = new CommitStorage();

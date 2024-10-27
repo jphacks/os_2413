@@ -13,11 +13,13 @@ import {
 } from "lucide-react";
 import Header from "../components/Header";
 import { format, addDays, subDays, startOfWeek, isSameDay } from "date-fns";
+import { useSearchParams } from "next/navigation";
+import { parseISO } from "date-fns";
 import { ja } from "date-fns/locale";
 import api from "../lib/api/reports";
 import { CommitAnalysis } from "../lib/api/reports";
 import DailyReportEditor from "../components/DailyReportEditor";
-import { reportStorage } from "../lib/storage/reports"; // 追加
+import { reportStorage, commitStorage } from "../lib/storage/reports"; // 追加
 
 import { FileEdit } from "lucide-react"; // 日報作成アイコン用
 
@@ -25,7 +27,7 @@ import { FileEdit } from "lucide-react"; // 日報作成アイコン用
 const user = {
   name: "日本 円",
   username: "@madoka",
-  avatar: "/api/placeholder/48/48",
+  avatar: "./images/photo-icon.png", // public/images内の画像パスを指定
   createdAt: "2024 / 10 / 25",
   updatedAt: "2024 / 10 / 24",
 };
@@ -54,7 +56,85 @@ export default function DailyReport() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const searchParams = useSearchParams();
+  const dateParam = searchParams.get("date");
   const [analysisData, setAnalysisData] = useState<CommitAnalysis | null>(null);
+  const [currentDateCommits, setCurrentDateCommits] = useState<CommitData[]>(
+    []
+  );
+
+  // URLパラメータから日付を設定
+  useEffect(() => {
+    if (dateParam) {
+      try {
+        const parsedDate = parseISO(dateParam);
+        setCurrentDate(parsedDate);
+      } catch (error) {
+        console.error("Invalid date parameter:", error);
+      }
+    }
+  }, [dateParam]);
+
+  // コミット履歴の取得と保存
+  const handleGenerateReport = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await api.analyzeCommits();
+      setAnalysisData(data);
+
+      // コミット履歴をローカルストレージに保存
+      if (data.commitData) {
+        commitStorage.saveCommits(data.commitData);
+      }
+
+      // 分析結果を日報コンテンツとして設定
+      if (data.analysis) {
+        const sections = formatAnalysisText(data.analysis);
+        const formattedContent = sections
+          .map((section) => `${section.title}\n${section.content}\n`)
+          .join("\n");
+
+        // 日報を保存
+        const formattedDate = format(currentDate, "yyyy-MM-dd");
+        reportStorage.saveReport(formattedDate, "日報", formattedContent);
+
+        setReportContent(formattedContent);
+        setReportTitle("日報");
+      }
+    } catch (err) {
+      console.error("API Error:", err);
+      setError("GitHubのコミット情報の取得に失敗しました");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 選択された日付の日報とコミットを読み込む
+  useEffect(() => {
+    const formattedDate = format(currentDate, "yyyy-MM-dd");
+
+    // 日報を読み込む
+    const savedReport = reportStorage.getReport(formattedDate);
+    if (savedReport) {
+      setReportContent(savedReport.content);
+      setReportTitle(savedReport.title);
+    } else {
+      setReportContent("");
+      setReportTitle("無題の日報");
+    }
+
+    // コミット履歴を読み込む
+    const commits = commitStorage.getCommitsByDate(formattedDate);
+    setCurrentDateCommits(commits);
+  }, [currentDate]);
+
+  // 日付が変更されたときにコミット履歴を更新
+  useEffect(() => {
+    const formattedDate = format(currentDate, "yyyy-MM-dd");
+    const commits = commitStorage.getCommitsByDate(formattedDate);
+    setCurrentDateCommits(commits);
+  }, [currentDate]);
 
   // 追加: 日付が変更されたときに日報データを読み込む
   useEffect(() => {
@@ -69,34 +149,6 @@ export default function DailyReport() {
       setReportTitle("無題の日報");
     }
   }, [currentDate]);
-
-  // 修正: 日報生成ハンドラー
-  const handleGenerateReport = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const data = await api.analyzeCommits();
-      setAnalysisData(data);
-      if (data.analysis) {
-        const sections = formatAnalysisText(data.analysis);
-        const formattedContent = sections
-          .map((section) => `${section.title}\n${section.content}\n`)
-          .join("\n");
-
-        // 追加: 日報を保存
-        const formattedDate = format(currentDate, "yyyy-MM-dd");
-        reportStorage.saveReport(formattedDate, "日報", formattedContent);
-
-        setReportContent(formattedContent);
-        setReportTitle("日報");
-      }
-    } catch (err) {
-      console.error("API Error:", err);
-      setError("GitHubのコミット情報の取得に失敗しました");
-    } finally {
-      setLoading(false);
-    }
-  };
 
   // 修正: 保存ハンドラー
   const handleSave = () => {
@@ -116,6 +168,14 @@ export default function DailyReport() {
     };
   });
 
+  // 現在選択している日付の日報データをローカルストレージから削除
+  const handleDeleteReport = () => {
+    const formattedDate = format(currentDate, "yyyy-MM-dd");
+    reportStorage.deleteReport(formattedDate);
+    setReportContent("");
+    setReportTitle("無題の日報");
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
@@ -127,21 +187,24 @@ export default function DailyReport() {
 
         <div className="flex gap-8">
           {/* 日報エディターコンポーネント */}
-          <DailyReportEditor
-            currentDate={currentDate}
-            isEditing={isEditing}
-            loading={loading}
-            error={error}
-            reportContent={reportContent}
-            reportTitle={reportTitle}
-            onEdit={() => setIsEditing(true)}
-            onSave={handleSave}
-            onContentChange={(content) => setReportContent(content)}
-            onGenerateReport={handleGenerateReport}
-          />
+          <div className="w-8/12 bg-white rounded-lg border">
+            <DailyReportEditor
+              currentDate={currentDate}
+              isEditing={isEditing}
+              loading={loading}
+              error={error}
+              reportContent={reportContent}
+              reportTitle={reportTitle}
+              onEdit={() => setIsEditing(true)}
+              onSave={handleSave}
+              onContentChange={(content) => setReportContent(content)}
+              onGenerateReport={handleGenerateReport}
+              onDelete={handleDeleteReport}
+            />{" "}
+          </div>
 
           {/* 右側: ユーザー情報と週間カレンダー */}
-          <div className="w-5/12 flex flex-col gap-6">
+          <div className="w-5/12 flex flex-col gap-5">
             {/* ユーザー情報 */}
             <div className="bg-white rounded-lg border p-4">
               <div className="flex items-center space-x-3 mb-4">
@@ -210,13 +273,16 @@ export default function DailyReport() {
                 </button>
               </div>
               {/* コミット履歴 */}
-              {analysisData?.commitData && (
-                <div className="bg-white rounded-lg border h-[calc(100vh-430px)] overflow-y-auto p-4">
-                  <h2 className="text-xl font-semibold border-b">
-                    コミット履歴
-                  </h2>
-                  <div className="divide-y">
-                    {analysisData.commitData.map((commit) => (
+              <div className="bg-white rounded-lg border h-[calc(100vh-430px)] overflow-y-auto p-4">
+                <h2 className="text-xl font-semibold border-b">
+                  コミット履歴
+                  <span className="text-sm font-normal text-gray-600 ml-2">
+                    {format(currentDate, "yyyy年MM月dd日")}
+                  </span>
+                </h2>
+                <div className="divide-y">
+                  {currentDateCommits.length > 0 ? (
+                    currentDateCommits.map((commit) => (
                       <div
                         key={commit.sha}
                         className="p-4 hover:bg-gray-50 transition-colors"
@@ -247,10 +313,14 @@ export default function DailyReport() {
                           </code>
                         </div>
                       </div>
-                    ))}
-                  </div>
+                    ))
+                  ) : (
+                    <div className="py-8 text-center text-gray-500">
+                      この日のコミット履歴はありません
+                    </div>
+                  )}
                 </div>
-              )}
+              </div>{" "}
             </div>
           </div>
         </div>
